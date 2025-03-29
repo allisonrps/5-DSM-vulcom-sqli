@@ -29,13 +29,22 @@ app.post('/login', (req, res) => {
     const { username, password } = req.body;
     
     // CONSULTA SQL VULNERÁVEL 🚨
-    const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+
+// ? marca o local onde onde parametros serão veinculados (binding
+// no caso do sqlite, caractere ? é usado para marcar o lugar dos
+//parametros, outros DB usam caracteres diferentes, como $1.
+// consultar documentação)
+const query = `SELECT * FROM users WHERE username = ? AND password = ?'`;
+//const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
     
+    // .all(query [], (err, rows) =>{
+        // os valores dos parametros passado sao passados no segundo argumento, entre [
+        // os valores sao sanitizados antes de serem incorporados a consulta]})
     db.all(query, [], (err, rows) => {
         if (err) {
             return res.send('Erro no servidor');
         }
-        if (rows) {
+        if (rows.lenght > 0) {
             console.log('CONSULTA: ', query);
             console.log('RESULTADO:', rows);
             return res.send(`Bem-vindo, ${username}! <br> Flag: VULCOM{SQLi_Exploit_Success}`);
